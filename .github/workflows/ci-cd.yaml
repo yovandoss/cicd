@@ -1,8 +1,10 @@
-name: Continuous Integration and Delivery
+name: Continuous Integration and 
+
 on:
   push:
     branches:
       - master
+
 jobs:
   build:
     runs-on: windows-latest
@@ -10,7 +12,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2  
 
-      - name: Setup .NET Core
+      - name: Setup .NET 7
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 7.0.x
