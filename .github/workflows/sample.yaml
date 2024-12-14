@@ -1,0 +1,17 @@
+name: Simple Action
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the 'main' branch
+
+jobs:
+  simple-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run a simple command
+        run: echo "This is a simple action run on push to main!"
