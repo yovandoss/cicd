@@ -64,68 +64,14 @@
           
 #         shell: pwsh  # Use PowerShell shell for Windows commands
 
-name: Deploy .NET 7 Application to Windows Server
+- name: Test WinRM Connection
+  shell: pwsh
+  run: |
+    $targetServer = "http://34.83.158.247:5985"
+    $username = "Felixcruze"
+    $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
-on:
-  push:
-    branches:
-      - main
+    Test-WSMan -ComputerName 34.83.158.247 -Authentication Basic -Credential $credential
 
-jobs:
-  deploy:
-    runs-on: windows-latest
-
-    steps:
-      # Step 1: Configure WinRM (Choose HTTPS if configured on the server)
-      - name: Configure WinRM
-        shell: cmd
-        run: |
-          winrm set winrm/config/service @{AllowUnencrypted="true"}
-          winrm set winrm/config/client @{AllowUnencrypted="true"}
-          winrm set winrm/config/client/auth @{Basic="true"}
-
-      # Step 2: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Step 3: Setup .NET SDK
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.x'
-
-      # Step 4: Restore dependencies
-      - name: Restore dependencies
-        run: dotnet restore ./CICD/CICD.sln
-
-      # Step 5: Build and Publish Application
-      - name: Build and Publish Application
-        run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
-
-      # Step 6: Deploy Application via PowerShell
-      - name: Deploy Application via PowerShell
-        shell: pwsh
-        run: |
-          # Define Target Server and Credentials
-          $targetServer = "http://34.83.158.247:5985" # Replace with https://34.83.158.247:5986 if using HTTPS
-          $username = "Felixcruze"
-          $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
-          $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
-
-          # Define Source and Target Paths
-          $sourcePath = "$(pwd)/publish/*"
-          $destinationPath = "C:\CICD-Test"
-
-          # Create Target Directory on Remote Server
-          Invoke-Command -Credential $credential -ConnectionUri $targetServer -Authentication Basic -ScriptBlock {
-              param($destPath)
-              if (!(Test-Path -Path $destPath)) {
-                  New-Item -ItemType Directory -Force -Path $destPath
-              }
-          } -ArgumentList $destinationPath
-
-          # Copy Files to Remote Server
-          $session = New-PSSession -Credential $credential -ConnectionUri $targetServer -Authentication Basic
-          Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -ToSession $session
-          Remove-PSSession $session
 
