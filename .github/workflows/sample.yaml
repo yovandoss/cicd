@@ -76,39 +76,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Step 1: Install Git (optional, for updated Git version)
-      - name: Install Git
-        run: choco install git -y
-
-      # Step 2: Verify Git Installation
-      - name: Verify Git Installation
-        run: git --version
-
-      # Step 3: Checkout code with credentials disabled
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          persist-credentials: false
 
-      # Step 4: Set Git Safe Directory
-      - name: Set Git Safe Directory
-        run: git config --global --add safe.directory ${{ github.workspace }}
-
-      # Step 5: Setup .NET SDK
+      # Step 2: Setup .NET SDK
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.x'
 
-      # Step 6: Restore dependencies
+      # Step 3: Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore ./path/to/YourSolution.sln
 
-      # Step 7: Build and Publish Application
+      # Step 4: Build and Publish Application
       - name: Build and publish application
-        run: dotnet publish -c Release -o publish
+        run: dotnet publish ./path/to/YourSolution.sln -c Release -o publish
 
-      # Step 8: Deploy Application
+      # Step 5: Deploy Application
       - name: Deploy to Windows Server
         uses: appleboy/scp-action@v0.1.5
         with:
