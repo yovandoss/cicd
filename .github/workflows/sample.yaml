@@ -98,15 +98,14 @@ jobs:
       - name: Deploy Application via PowerShell
         shell: pwsh
         run: |
-          $targetServer = "184.95.53.242"
-          $port = "59184"
-          $username = "SHOPADMIN"
-          $password = ConvertTo-SecureString "T4*iMLu!5awXq7)dGr" -AsPlainText -Force
+          $targetServer = "34.83.158.247"
+          $username = "Felixcruze"
+          $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
           # Define Source and Target Paths
           $sourcePath = "$(pwd)/publish/*"
-          $destinationPath = "\\$targetServer\C$\inetpub\wwwroot\MyApp"
+          $destinationPath = "\\$targetServer\C$\CICD-Test"
 
           # Create Target Directory if Missing
           Invoke-Command -Credential $credential -ComputerName $targetServer -ScriptBlock {
