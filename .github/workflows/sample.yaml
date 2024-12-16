@@ -1,17 +1,106 @@
-name: Simple Action
+# name: Simple Action
+
+# on:
+#   push:
+#     branches:
+#       - main  # Trigger on push to the 'main' branch
+
+# jobs:
+#   simple-job:
+#     runs-on: windows-latest
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+
+#       - name: Run a simple command
+#         run: echo "This is a simple action run on push to main!"
+
+
+# name: Deploy .NET 7 Application to Windows
+
+# on:
+#   push:
+#     branches:
+#       - main  # Trigger on push to the 'main' branch
+
+# jobs:
+#   build_and_deploy:
+#     runs-on: windows-latest  # Use a Windows environment for the job
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3  # Checkout the repository
+
+#       - name: Set up .NET 7 SDK
+#         uses: actions/setup-dotnet@v3
+#         with:
+#           dotnet-version: '7.0.x'  # Specify .NET 7 version
+
+#       - name: Restore dependencies
+#         run: dotnet restore  # Restore NuGet dependencies
+
+#       - name: Build application
+#         run: dotnet build --configuration Release  # Build the application in Release mode
+
+#       - name: Publish application
+#         run: dotnet publish --configuration Release --output ./publish  # Publish the app to a folder
+
+#       - name: Deploy to Windows Server
+#         run: |
+#           # You may use PowerShell, SCP, or any other tool to deploy the app
+#           # Here we are using a basic example of copying files over to a server
+          
+#           # Set up deployment path and server details
+#           $deploymentPath = "C:\path\to\deployment\folder"
+#           $serverAddress = "your-server-address"  # Replace with actual server address
+          
+#           # Example command to copy files over
+#           New-Item -ItemType Directory -Force -Path $deploymentPath
+#           Copy-Item -Recurse ./publish/* $deploymentPath
+          
+#           # Restart the application on the server (adjust based on how your app runs)
+#           Restart-Service -Name "YourAppServiceName"  # Adjust for your service name
+          
+#         shell: pwsh  # Use PowerShell shell for Windows commands
+
+
+name: Deploy .NET 7 Application to Windows Server
 
 on:
   push:
     branches:
-      - main  # Trigger on push to the 'main' branch
+      - main
 
 jobs:
-  simple-job:
+  deploy:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      # Step 1: Checkout code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Run a simple command
-        run: echo "This is a simple action run on push to main!"
+      # Step 2: Setup .NET 7 SDK
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'
+
+      # Step 3: Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore
+
+      # Step 4: Build and publish application
+      - name: Build and publish application
+        run: dotnet publish -c Release -o publish
+
+      # Step 5: Deploy to Windows Server using SSH
+      - name: Deploy to Windows Server
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.WINDOWS_SERVER_HOST }}
+          username: ${{ secrets.WINDOWS_SERVER_USER }}
+          password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
+          source: ./publish/*
+          target: C:/inetpub/wwwroot/MyApp
