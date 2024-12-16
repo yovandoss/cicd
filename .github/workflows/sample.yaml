@@ -94,19 +94,14 @@ jobs:
       - name: Build and Publish Application
         run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
 
-      # Step 5: Copy Files to Windows Server
+      # Step 5: Deploy Application via PowerShell
       - name: Deploy Application via PowerShell
         shell: pwsh
         run: |
-          # Validate Secrets
-          if (-not "${{ secrets.WINDOWS_SERVER_HOST }}" -or -not "${{ secrets.WINDOWS_SERVER_USER }}" -or -not "${{ secrets.WINDOWS_SERVER_PASSWORD }}") {
-              throw "Missing required secrets. Please check WINDOWS_SERVER_HOST, WINDOWS_SERVER_USER, and WINDOWS_SERVER_PASSWORD."
-          }
-
-          # Assign Variables
-          $targetServer = "${{ secrets.WINDOWS_SERVER_HOST }}"
-          $username = "${{ secrets.WINDOWS_SERVER_USER }}"
-          $password = ConvertTo-SecureString "${{ secrets.WINDOWS_SERVER_PASSWORD }}" -AsPlainText -Force
+          $targetServer = "184.95.53.242"
+          $port = "59184"
+          $username = "SHOPADMIN"
+          $password = ConvertTo-SecureString "T4*iMLu!5awXq7)dGr" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
           # Define Source and Target Paths
@@ -123,4 +118,3 @@ jobs:
 
           # Copy Files to Target Server
           Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -Credential $credential
-
