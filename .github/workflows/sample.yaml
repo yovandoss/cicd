@@ -107,7 +107,7 @@ jobs:
         shell: pwsh
         run: |
           # Define Target Server and Credentials
-          $targetServer = "http://34.83.158.247:5985" # Use https://34.83.158.247:5986 for HTTPS
+          $targetServer = "http://34.83.158.247:5985" # Replace with the correct server address
           $username = "Felixcruze"
           $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
@@ -118,9 +118,9 @@ jobs:
 
           # Create Target Directory on Remote Server
           Invoke-Command -Credential $credential -ConnectionUri $targetServer -Authentication Basic -ScriptBlock {
-              param ($destinationPath)
-              if (!(Test-Path -Path $destinationPath)) {
-                  New-Item -ItemType Directory -Force -Path $destinationPath
+              param($destPath)
+              if (!(Test-Path -Path $destPath)) {
+                  New-Item -ItemType Directory -Force -Path $destPath
               }
           } -ArgumentList $destinationPath
 
@@ -128,5 +128,3 @@ jobs:
           $session = New-PSSession -Credential $credential -ConnectionUri $targetServer -Authentication Basic
           Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -ToSession $session
           Remove-PSSession $session
-
-
