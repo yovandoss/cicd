@@ -91,16 +91,29 @@ jobs:
         run: dotnet restore ./CICD/CICD.sln
 
       # Step 4: Build and Publish Application
-      - name: Build and publish application
+      - name: Build and Publish Application
         run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
 
-      # Step 5: Deploy Application
-      - name: Deploy to Windows Server
-        uses: appleboy/scp-action@v0.1.5
-        with:
-          host: ${{ secrets.WINDOWS_SERVER_HOST }}
-          username: ${{ secrets.WINDOWS_SERVER_USER }}
-          password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
-          source: ./publish/*
-          target: C:/inetpub/wwwroot/MyApp
+      # Step 5: Copy Files to Windows Server
+      - name: Deploy Application via PowerShell
+        shell: pwsh
+        run: |
+          $targetServer = "${{ secrets.WINDOWS_SERVER_HOST }}"
+          $username = "${{ secrets.WINDOWS_SERVER_USER }}"
+          $password = ConvertTo-SecureString "${{ secrets.WINDOWS_SERVER_PASSWORD }}" -AsPlainText -Force
+          $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
+          # Define source and target paths
+          $sourcePath = "$(pwd)/publish/*"
+          $destinationPath = "\\$targetServer\C$\inetpub\wwwroot\MyApp"
+
+          # Create the target directory if it doesn't exist
+          Invoke-Command -Credential $credential -ComputerName $targetServer -ScriptBlock {
+              param ($destinationPath)
+              if (!(Test-Path -Path $destinationPath)) {
+                  New-Item -ItemType Directory -Force -Path $destinationPath
+              }
+          } -ArgumentList $destinationPath
+
+          # Copy files to the target server
+          Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -Credential $credential
