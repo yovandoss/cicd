@@ -88,11 +88,11 @@ jobs:
 
       # Step 3: Restore dependencies
       - name: Restore dependencies
-        run: dotnet restore ./path/to/YourSolution.sln
+        run: dotnet restore ./CICD/CICD.sln
 
       # Step 4: Build and Publish Application
       - name: Build and publish application
-        run: dotnet publish ./path/to/YourSolution.sln -c Release -o publish
+        run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
 
       # Step 5: Deploy Application
       - name: Deploy to Windows Server
@@ -103,3 +103,4 @@ jobs:
           password: ${{ secrets.WINDOWS_SERVER_PASSWORD }}
           source: ./publish/*
           target: C:/inetpub/wwwroot/MyApp
+
