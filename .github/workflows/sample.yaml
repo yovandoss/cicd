@@ -76,12 +76,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Step 1: Enable Unencrypted Traffic (for HTTP only)
+      # Step 1: Enable Unencrypted Traffic on Client
       - name: Enable Unencrypted Traffic on Client
-        shell: pwsh
+        shell: cmd
         run: |
           winrm set winrm/config/service @{AllowUnencrypted="true"}
           winrm set winrm/config/client @{AllowUnencrypted="true"}
+          winrm set winrm/config/client/auth @{Basic="true"}
 
       # Step 2: Checkout code
       - name: Checkout code
@@ -127,4 +128,5 @@ jobs:
           $session = New-PSSession -Credential $credential -ConnectionUri $targetServer -Authentication Basic
           Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -ToSession $session
           Remove-PSSession $session
+
 
