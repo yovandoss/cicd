@@ -76,8 +76,8 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Step 1: Enable Unencrypted Traffic on Client
-      - name: Enable Unencrypted Traffic on Client
+      # Step 1: Configure WinRM (Choose HTTPS if configured on the server)
+      - name: Configure WinRM
         shell: cmd
         run: |
           winrm set winrm/config/service @{AllowUnencrypted="true"}
@@ -107,7 +107,7 @@ jobs:
         shell: pwsh
         run: |
           # Define Target Server and Credentials
-          $targetServer = "http://34.83.158.247:5985" # Replace with the correct server address
+          $targetServer = "http://34.83.158.247:5985" # Replace with https://34.83.158.247:5986 if using HTTPS
           $username = "Felixcruze"
           $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
@@ -128,3 +128,4 @@ jobs:
           $session = New-PSSession -Credential $credential -ConnectionUri $targetServer -Authentication Basic
           Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -ToSession $session
           Remove-PSSession $session
+
