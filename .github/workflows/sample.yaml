@@ -64,54 +64,18 @@
           
 #         shell: pwsh  # Use PowerShell shell for Windows commands
 
-name: Deploy .NET 7 Application to Windows Server
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: windows-latest
-
-    steps:
-      # Step 1: Checkout code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Step 2: Setup .NET SDK
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.x'
-
-      # Step 3: Restore dependencies
-      - name: Restore dependencies
-        run: dotnet restore ./CICD/CICD.sln
-
-      # Step 4: Build and Publish Application
-      - name: Build and Publish Application
-        run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
-
-      # Step 5: Configure TrustedHosts (optional, for client-side issues)
-      - name: Configure TrustedHosts
-        shell: pwsh
-        run: |
-          Set-Item wsman:\localhost\Client\TrustedHosts -Value "34.83.158.247" -Force
-
       # Step 6: Deploy Application via PowerShell
       - name: Deploy Application via PowerShell
         shell: pwsh
         run: |
-          $targetServer = "http://34.83.158.247:5985" # Use https://34.83.158.247:5986 for HTTPS
+          $targetServer = "https://34.83.158.247:5986"
           $username = "Felixcruze"
           $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
           # Define Source and Target Paths
           $sourcePath = "$(pwd)/publish/*"
-          $destinationPath = "\\$($targetServer.Split(':')[1].Trim('/'))\C$\CICD-Test"
+          $destinationPath = "\\C$\CICD-Test"
 
           # Create Target Directory if Missing
           Invoke-Command -Credential $credential -ConnectionUri $targetServer -Authentication Basic -ScriptBlock {
