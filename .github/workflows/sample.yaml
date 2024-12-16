@@ -94,21 +94,27 @@ jobs:
       - name: Build and Publish Application
         run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
 
-      # Step 5: Deploy Application via PowerShell
+      # Step 5: Configure TrustedHosts (optional, for client-side issues)
+      - name: Configure TrustedHosts
+        shell: pwsh
+        run: |
+          Set-Item wsman:\localhost\Client\TrustedHosts -Value "34.83.158.247" -Force
+
+      # Step 6: Deploy Application via PowerShell
       - name: Deploy Application via PowerShell
         shell: pwsh
         run: |
-          $targetServer = "34.83.158.247"
+          $targetServer = "http://34.83.158.247:5985" # Use https://34.83.158.247:5986 for HTTPS
           $username = "Felixcruze"
           $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
           # Define Source and Target Paths
           $sourcePath = "$(pwd)/publish/*"
-          $destinationPath = "\\$targetServer\C$\CICD-Test"
+          $destinationPath = "\\$($targetServer.Split(':')[1].Trim('/'))\C$\CICD-Test"
 
           # Create Target Directory if Missing
-          Invoke-Command -Credential $credential -ComputerName $targetServer -ScriptBlock {
+          Invoke-Command -Credential $credential -ConnectionUri $targetServer -Authentication Basic -ScriptBlock {
               param ($destinationPath)
               if (!(Test-Path -Path $destinationPath)) {
                   New-Item -ItemType Directory -Force -Path $destinationPath
