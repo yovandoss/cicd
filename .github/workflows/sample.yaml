@@ -64,18 +64,55 @@
           
 #         shell: pwsh  # Use PowerShell shell for Windows commands
 
+name: Deploy .NET 7 Application to Windows Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+      # Step 1: Enable Unencrypted Traffic
+      - name: Enable Unencrypted Traffic on Client
+        shell: pwsh
+        run: |
+          winrm set winrm/config/service @{AllowUnencrypted="true"}
+          winrm set winrm/config/client @{AllowUnencrypted="true"}
+
+      # Step 2: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 3: Setup .NET SDK
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'
+
+      # Step 4: Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore ./CICD/CICD.sln
+
+      # Step 5: Build and Publish Application
+      - name: Build and Publish Application
+        run: dotnet publish ./CICD/CICD.sln -c Release -o ./publish
+
       # Step 6: Deploy Application via PowerShell
       - name: Deploy Application via PowerShell
         shell: pwsh
         run: |
-          $targetServer = "https://34.83.158.247:5986"
+          $targetServer = "http://34.83.158.247:5985"
           $username = "Felixcruze"
           $password = ConvertTo-SecureString "4rUkgqyHoKy!50C" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
           # Define Source and Target Paths
           $sourcePath = "$(pwd)/publish/*"
-          $destinationPath = "\\C$\CICD-Test"
+          $destinationPath = "\\$($targetServer.Split(':')[1].TrimStart('/'))\C$\CICD-Test"
 
           # Create Target Directory if Missing
           Invoke-Command -Credential $credential -ConnectionUri $targetServer -Authentication Basic -ScriptBlock {
