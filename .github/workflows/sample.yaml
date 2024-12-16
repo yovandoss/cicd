@@ -98,16 +98,22 @@ jobs:
       - name: Deploy Application via PowerShell
         shell: pwsh
         run: |
+          # Validate Secrets
+          if (-not "${{ secrets.WINDOWS_SERVER_HOST }}" -or -not "${{ secrets.WINDOWS_SERVER_USER }}" -or -not "${{ secrets.WINDOWS_SERVER_PASSWORD }}") {
+              throw "Missing required secrets. Please check WINDOWS_SERVER_HOST, WINDOWS_SERVER_USER, and WINDOWS_SERVER_PASSWORD."
+          }
+
+          # Assign Variables
           $targetServer = "${{ secrets.WINDOWS_SERVER_HOST }}"
           $username = "${{ secrets.WINDOWS_SERVER_USER }}"
           $password = ConvertTo-SecureString "${{ secrets.WINDOWS_SERVER_PASSWORD }}" -AsPlainText -Force
           $credential = New-Object System.Management.Automation.PSCredential ($username, $password)
 
-          # Define source and target paths
+          # Define Source and Target Paths
           $sourcePath = "$(pwd)/publish/*"
           $destinationPath = "\\$targetServer\C$\inetpub\wwwroot\MyApp"
 
-          # Create the target directory if it doesn't exist
+          # Create Target Directory if Missing
           Invoke-Command -Credential $credential -ComputerName $targetServer -ScriptBlock {
               param ($destinationPath)
               if (!(Test-Path -Path $destinationPath)) {
@@ -115,5 +121,6 @@ jobs:
               }
           } -ArgumentList $destinationPath
 
-          # Copy files to the target server
+          # Copy Files to Target Server
           Copy-Item -Path $sourcePath -Destination $destinationPath -Recurse -Force -Credential $credential
+
